@@ -1,9 +1,11 @@
+/* eslint-disable */
 import React from 'react';
 
 const StateContext = React.createContext(new Map());
 
 export class Container {
   state;
+
   _listeners = [];
 
   constructor() {
@@ -12,8 +14,8 @@ export class Container {
 
   setState(
     updater,
-    callback)
-{
+    callback,
+  ) {
     return Promise.resolve().then(() => {
       let nextState;
 
@@ -30,7 +32,7 @@ export class Container {
 
       this.state = Object.assign({}, this.state, nextState);
 
-      let promises = this._listeners.map(listener => listener());
+      const promises = this._listeners.map(listener => listener());
 
       return Promise.all(promises).then(() => {
         if (callback) {
@@ -53,7 +55,9 @@ const DUMMY_STATE = {};
 
 export class Subscribe extends React.Component {
   state = {};
+
   instances = [];
+
   unmounted = false;
 
   componentWillUnmount() {
@@ -62,40 +66,38 @@ export class Subscribe extends React.Component {
   }
 
   _unsubscribe() {
-    this.instances.forEach(container => {
+    this.instances.forEach((container) => {
       container.unsubscribe(this.onUpdate);
     });
   }
 
-  onUpdate = () => {
-    return new Promise(resolve => {
-      if (!this.unmounted) {
-        this.setState(DUMMY_STATE, resolve);
-      } else {
-        resolve();
-      }
-    });
-  };
+  onUpdate = () => new Promise((resolve) => {
+    if (!this.unmounted) {
+      this.setState(DUMMY_STATE, resolve);
+    } else {
+      resolve();
+    }
+  });
 
   _createInstances(
     map,
-    containers
-  ){
+    containers,
+  ) {
     this._unsubscribe();
 
     if (map === null) {
       throw new Error(
-        'You must wrap your <Subscribe> components with a <Provider>'
+        'You must wrap your <Subscribe> components with a <Provider>',
       );
     }
 
-    let safeMap = map;
-    let instances = containers.map(ContainerItem => {
+    const safeMap = map;
+    const instances = containers.map((ContainerItem) => {
       let instance;
 
       if (
-        typeof ContainerItem === 'object' &&
-        ContainerItem instanceof Container
+        typeof ContainerItem === 'object'
+        && ContainerItem instanceof Container
       ) {
         instance = ContainerItem;
       } else {
@@ -120,11 +122,10 @@ export class Subscribe extends React.Component {
   render() {
     return (
       <StateContext.Consumer>
-        {map =>
-          this.props.children.apply(
-            null,
-            this._createInstances(map, this.props.to)
-          )
+        {map => this.props.children.apply(
+          null,
+          this._createInstances(map, this.props.to),
+        )
         }
       </StateContext.Consumer>
     );
@@ -134,13 +135,11 @@ export class Subscribe extends React.Component {
 export function Provider(props) {
   return (
     <StateContext.Consumer>
-      {parentMap => {
-        return (
-          <StateContext.Provider value={parentMap}>
-            {props.children}
-          </StateContext.Provider>
-        );
-      }}
+      {parentMap => (
+        <StateContext.Provider value={parentMap}>
+          {props.children}
+        </StateContext.Provider>
+      )}
     </StateContext.Consumer>
   );
 }
@@ -150,7 +149,7 @@ let CONTAINER_DEBUG_CALLBACKS = [];
 // If your name isn't Sindre, this is not for you.
 // I might ruin your day suddenly if you depend on this without talking to me.
 export function __SUPER_SECRET_CONTAINER_DEBUG_HOOK__(
-  callback
+  callback,
 ) {
   CONTAINER_DEBUG_CALLBACKS.push(callback);
 }
